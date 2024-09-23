@@ -1,0 +1,58 @@
+[
+```json
+{
+  "manufacturer": "CROWN MATTING",
+  "description": "6'X20' RELY-ON OLEFIN MAT, NAVY",
+  "part_number": "6X20-GSR72NB",
+  "UPC": "023244922310",
+  "SKU": "CROGSR0072NB",
+  "product_link": "https://safetysourcellc.com/safety-supplies/facility-maintenance/matting/entrance-matting/crown-matting-gsr0072nb-rely-on-olefin-6x60-navy-blue-entrance-matting/?srsltid=AfmBOoquW33ECn2oj9ByJ2khKFUsQH5jz61pDwWLwhLODmLcSaupwvt1",
+  "image_link": "https://cdn11.bigcommerce.com/s-f27ljev4yq/images/stencil/500x659/products/134828/314817/Crown_315_Rely-On-Olefin_NavyBlue_mat__69060.1699906105.jpg?c=2"
+}
+```,
+```json
+{
+  "manufacturer": "CASTEX/NOBLES",
+  "description": "HOSE ASSEMBLY, RECOVERY",
+  "part_number": "9017712",
+  "scraped_results": [
+    {
+      "UPC": null,
+      "SKU": null,
+      "Product link": "https://www.sourcefy.com/tennant-castex-nobles-hose-assembly-71102/",
+      "Image link": null
+    },
+    {
+      "UPC": null,
+      "SKU": "HSE692",
+      "Product link": "https://www.thevacuumfactory.com/product/tennant-castex-nobles-recovery-tank-drain-hose-1019424/",
+      "Image link": null
+    },
+    {
+      "UPC": null,
+      "SKU": "CI-603051-EA",
+      "Product link": "https://www.jondon.com/hose-29-wire-reinforce.html?srsltid=AfmBOopKFWc3BUi9Os8TvA_ZmoxeyKG2BmBiKuT0M-lL0LbrZOUbtJhg",
+      "Image link": null
+    },
+    {
+      "UPC": null,
+      "SKU": "CI-190965-EA",
+      "Product link": "https://www.jondon.com/drain-hose-complete.html?srsltid=AfmBOorhvaM0yUHiSonxEHV7Ai2O2k7aUqT1zyPJPLirBPHaGxu8nYkx",
+      "Image link": null
+    },
+    {
+      "UPC": null,
+      "SKU": "MVP-TNN9015728",
+      "Product link": "https://shop.moderngroup.com/9015728-tennant-castex-nobles-aftermarket-hose-kit/",
+      "Image link": null
+    },
+    {
+      "UPC": null,
+      "SKU": "HSE679",
+      "Product link": "https://www.thevacuumfactory.com/product/tennant-castex-nobles-solution-drain-hose-71236/",
+      "Image link": null
+    }
+  ]
+}
+```
+]
