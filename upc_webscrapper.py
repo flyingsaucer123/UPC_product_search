@@ -7,6 +7,12 @@ import json
 import google.generativeai as genai  # Import Google Gemini API
 import time
 from datetime import datetime
+import sys
+import codecs
+
+# Change the default encoding for standard output to utf-8
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+
 
 # Load environment variables
 load_dotenv()
@@ -43,6 +49,7 @@ class CleanScrapedDataTool(BaseTool):
 
             Please filter out unnecessary details and return only the following:
             - UPC code (if available)
+            - SKU (if available)
             - Product link
             - Image link
 
@@ -62,12 +69,12 @@ class CleanScrapedDataTool(BaseTool):
             if response.candidates and len(response.candidates) > 0:
                 cleaned_output = response.candidates[0].content.parts[0].text
 
-                # Check if UPC is found in the cleaned output
-                if '"UPC"' in cleaned_output and cleaned_output.count("null") == 0:
-                    print(f"Attempt {attempt + 1}: UPC found, stopping retries.")
+                # Check if UPC or SKU is found in the cleaned output
+                if ('"UPC"' in cleaned_output or '"SKU"' in cleaned_output) and cleaned_output.count("null") == 0:
+                    print(f"Attempt {attempt + 1}: Identifier found, stopping retries.")
                     break
                 else:
-                    print(f"Attempt {attempt + 1}: UPC not found, retrying...")
+                    print(f"Attempt {attempt + 1}: Identifier not found, retrying...")
 
             attempt += 1
             time.sleep(1)  # Small delay between retries
@@ -76,9 +83,16 @@ class CleanScrapedDataTool(BaseTool):
 
 # Define a function to generate a dynamic output file name based on product details
 def generate_output_filename(inputs):
+    # Create a base name using the manufacturer name and product description
     base_name = f"{inputs['manufacturer_name']}_{inputs['product_description']}"
-    base_name = base_name.replace(" ", "_").replace("/", "_")
+    
+    # Replace any invalid characters in the filename (e.g., quotes, slashes, etc.)
+    base_name = base_name.replace(" ", "_").replace("/", "_").replace('"', '')  # Remove double quotes
+    
+    # Add a timestamp to ensure unique file names
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    
+    # Return the complete output file path
     return f"output/{base_name}_{timestamp}.txt"
 
 # Define the UPC Search Agent
@@ -95,8 +109,8 @@ upc_search_agent = Agent(
 # Define the Scraping Agent
 scraping_agent = Agent(
     role="Scraping Expert",
-    goal="Scrape relevant web pages to extract UPC codes from search results.",
-    backstory="You specialize in scraping and extracting data from websites.",
+    goal="Scrape ONLY the relevant sections of web pages to extract UPC codes/SKU from search results.",
+    backstory="You specialize in scraping only the relevant sections and extracting UPC Code/SKU from websites.You do not scrape unnecessary information",
     tools=[scrape_tool],
     allow_delegation=False,
     verbose=True,
@@ -107,7 +121,7 @@ scraping_agent = Agent(
 writer = Agent(
     role='JSON Writer',
     goal='Write JSON files based on input and final output based on the results of the scraping tasks.',
-    backstory='Writes JSON files based on input and output (UPC code, product link, image link) into a JSON format.',
+    backstory='Writes JSON files based on input and output (UPC code, SKU, product link, image link) into a JSON format.',
     verbose=True,
     memory=True
 )
@@ -140,25 +154,25 @@ def create_upc_search_task(inputs):
 # Task for Scraping
 upc_scraping_task = Task(
     description=(
-        "Scrape the relevant web pages found during the search for UPC codes based on the search results. "
-        "Make sure to extract the UPC code from the scraped data. A typical UPC barcode's 12 digits represent the product's unique identifier."
+        "Scrape only the relevant sections of web pages found during the search for UPC codes/SKU based on the search results. "
+        "Make sure to extract the UPC or SKU code from the scraped data. A typical UPC barcode's 12 digits represent the product's unique identifier."
     ),
-    expected_output="Scraped content that contains the UPC code, product link, and image link in a clean JSON format.",
+    expected_output="Scraped content that contains the UPC, SKU, product link, and image link in a clean JSON format.",
     tools=[scrape_tool],  # Scraping the web pages returned from search
     agent=scraping_agent
 )
 
 # Task for Cleaning the Data using the prompt-based custom tool with retry
 cleaning_task = Task(
-    description="Use the scraped data and clean it by removing unnecessary details via Gemini Pro 1.5 Flash and retry up to 1 more time if UPC code is not found.",
-    expected_output="Cleaned JSON output with only necessary details (UPC code, product link, image link).",
+    description="Use the scraped data and clean it by removing unnecessary details via Gemini Pro 1.5 Flash and retry up to 1 more time if no UPC or SKU code is not found.",
+    expected_output="Cleaned JSON output with only necessary details (UPC, SKU, product link, image link).",
     tools=[CleanScrapedDataTool()],
     agent=cleaning_agent
 )
 
 # Task to write input and final output to JSON (overwrite approach)
 write_to_json_task = Task(
-    description="Combine the input data (manufacturer: {manufacturer_name}, description: {product_description}, part number: {manufacturer_part_number}) and final scraping results (UPC code, product link, image link) and write them to a JSON file (overwrite the file).",
+    description="Combine the input data (manufacturer: {manufacturer_name}, description: {product_description}, part number: {manufacturer_part_number}) and final scraping results (UPC, SKU, product link, image link) and write them to a JSON file (overwrite the file).",
     expected_output="A JSON file with the input data and the scraping results (overwrite the file).",
     agent=writer,  # Writer agent handles combining and writing the result
     output_file="output/output_upc_search.json"  # Save the file in the specified directory
@@ -224,11 +238,13 @@ final_results_string = "[\n" + ",\n".join(final_results) + "\n]"
 
 print("FINAL RESULTS printed below:::")
 print(final_results_string)
+
 # Write the final results to an output text file
 with open("output/final_results.txt", 'w') as output_file:
     output_file.write(final_results_string)
 
-
 # Optionally, delete the intermediate file after processing
 if os.path.exists(intermediate_file_path):
     os.remove(intermediate_file_path)
+
+
